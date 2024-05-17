@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReferMe.Views.LoginPage"
+             xmlns:vm="clr-namespace:ReferMe.ViewModels"
+             x:DataType="vm:LoginPageViewModel">
+    <ContentPage.Content>
+        <VerticalStackLayout>
+            <Image
+                Source="dotnet_bot.png"
+                HeightRequest="185"
+                Aspect="AspectFit"
+                SemanticProperties.Description="dot net bot in a race car number eight" />
+
+            <Label
+                Text="ReferMe"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <VerticalStackLayout Spacing="15">
+                <Entry Placeholder="Email or Username"
+                       Margin="20,0"
+                       FontFamily="OpenSansRegular"
+                       Text="{Binding UserName}" />
+
+                <Entry Placeholder="Password" Margin="20,0"
+                       IsPassword="True"
+                       FontFamily="OpenSansRegular"
+                       Text="{Binding Password}" />
+            </VerticalStackLayout>
+
+            <Button Text="Login"
+                    Command="{Binding LoginCommand}"
+                    CornerRadius="8"
+                    Margin="20,20"
+                    HeightRequest="40" 
+                    TextColor="White" 
+                    FontFamily="OpenSansSemibold"/>
+
+        </VerticalStackLayout>
+    </ContentPage.Content>
+</ContentPage>

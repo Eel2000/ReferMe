@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReferMe.MainPage"
+             xmlns:vm="clr-namespace:ReferMe.ViewModels"
+             xmlns:models="clr-namespace:ReferMe.Models"
+             x:DataType="vm:MainPageViewModel">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,*">
+            <VerticalStackLayout
+                Padding="30,0"
+                Spacing="25">
+                <Image
+                    Source="dotnet_bot.png"
+                    HeightRequest="50"
+                    Aspect="AspectFit"
+                    SemanticProperties.Description="dot net bot in a race car number eight" />
+
+                <Label Text="{Binding UserInfo.UserName,StringFormat='Hello, {0}'}" />
+                <Label Text="{Binding ConnectionStatus,StringFormat='Connection {0}'}" />
+
+                <HorizontalStackLayout HorizontalOptions="CenterAndExpand" Spacing="10">
+                    <Button Command="{Binding RefreshConnectionCommand}"
+                            Text="Refresh Connection"
+                            CornerRadius="8" />
+
+                    <Button Command="{Binding RefreshDataCommand}"
+                            Text="Refresh Data"
+                            CornerRadius="8" />
+
+                </HorizontalStackLayout>
+
+
+            </VerticalStackLayout>
+            <CollectionView Grid.Row="1"
+                            ItemsSource="{Binding UserInfos}"
+                            SelectedItem="{Binding SelectedUserInfo}"
+                            SelectionMode="Single"
+                            SelectionChangedCommand="{Binding SendRequestCommand}"
+                            IsPlatformEnabled="True"
+                            IsInPlatformLayout="True"
+                            ItemSizingStrategy="MeasureFirstItem"
+                            ItemsUpdatingScrollMode="KeepScrollOffset">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:UserInfo">
+                        <Border HeightRequest="40" Margin="10,5">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding UserName}"
+                                       FontSize="18"
+                                       FontFamily="OpenSansSemiBold"
+                                       VerticalOptions="CenterAndExpand" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
