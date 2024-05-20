@@ -13,8 +13,8 @@
         ContentTemplate="{DataTemplate local:LoginPage}"
         Route="LoginPage" />
 
-    <ShellContent ContentTemplate="{DataTemplate local:MainPage}" 
-                  Route="MainPage" 
-                  Shell.NavBarIsVisible="False"/>
+    <ShellContent ContentTemplate="{DataTemplate local:MainPage}"
+                  Route="MainPage"
+                  Shell.NavBarIsVisible="True" />
 
 </Shell>

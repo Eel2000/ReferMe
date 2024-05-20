@@ -6,6 +6,6 @@ namespace ReferMe.Services.Tracking;
 
 public interface ITrackingService
 {
-    ValueTask<IEnumerable<TrackRequest>> GetIncomingRequestAsync();
-    ValueTask<IEnumerable<TrackRequest>> GetOutGoingRequestAsync();
+    ValueTask<IEnumerable<TrackRequest>> GetIncomingRequestAsync(string token = "");
+    ValueTask<IEnumerable<TrackRequest>> GetOutGoingRequestAsync(string token = "");
 }

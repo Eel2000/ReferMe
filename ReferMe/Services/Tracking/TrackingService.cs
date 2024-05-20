@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 using ReferMe.Models;
 using ReferMe.Models.Interaction;
 
@@ -11,7 +8,7 @@ namespace ReferMe.Services.Tracking;
 
 internal sealed class TrackingService(HttpClient client) : ITrackingService
 {
-    public async ValueTask<IEnumerable<TrackRequest>> GetIncomingRequestAsync()
+    public async ValueTask<IEnumerable<TrackRequest>> GetIncomingRequestAsync(string token = "")
     {
         try
         {
@@ -21,12 +18,16 @@ internal sealed class TrackingService(HttpClient client) : ITrackingService
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
             };
             client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var reponse =
-                await client.GetFromJsonAsync<Response<IEnumerable<TrackRequest>>>(
-                    "https://192.168.43.177:45455/api/Tracking/incoming-requests");
+            var reponse = await client.GetAsync("https://192.168.11.111:45455/api/Tracking/incoming-requests");
+            reponse.EnsureSuccessStatusCode();
 
-            return reponse.Data;
+            var jsonResponse = await reponse.Content.ReadAsStringAsync();
+
+            var typedResponse = JsonConvert.DeserializeObject<Response<IEnumerable<TrackRequest>>>(jsonResponse);
+
+            return typedResponse.Data;
         }
         catch (Exception e)
         {
@@ -35,7 +36,7 @@ internal sealed class TrackingService(HttpClient client) : ITrackingService
         }
     }
 
-    public async ValueTask<IEnumerable<TrackRequest>> GetOutGoingRequestAsync()
+    public async ValueTask<IEnumerable<TrackRequest>> GetOutGoingRequestAsync(string token = "")
     {
         try
         {
@@ -45,6 +46,7 @@ internal sealed class TrackingService(HttpClient client) : ITrackingService
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
             };
             client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var reponse =
                 await client.GetFromJsonAsync<Response<IEnumerable<TrackRequest>>>(

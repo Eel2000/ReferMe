@@ -8,6 +8,10 @@
              xmlns:models="clr-namespace:ReferMe.Models"
              x:DataType="vm:MainPageViewModel">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Requests" Command="{Binding OpenRequestsPageCommand}" />
+    </ContentPage.ToolbarItems>
+
     <ScrollView>
         <Grid RowDefinitions="Auto,*">
             <VerticalStackLayout
@@ -29,7 +33,7 @@
 
                     <Button Grid.Column="1" Command="{Binding RefreshDataCommand}"
                             Text="Refresh Data"
-                            CornerRadius="8" Margin="10,0"/>
+                            CornerRadius="8" Margin="10,0" />
 
                     <Button Grid.Column="2" Command="{Binding LogOutCommand}"
                             Text="Log out"

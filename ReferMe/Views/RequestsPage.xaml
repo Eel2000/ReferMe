@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReferMe.Views.RequestsPage"
+             xmlns:vm="clr-namespace:ReferMe.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:models="clr-namespace:ReferMe.Models.Interaction"
+             x:DataType="vm:RequestPageViewModel" Shell.NavBarIsVisible="True">
+    <ContentPage.Content>
+        <Grid RowDefinitions="Auto,*">
+            <Grid>
+                <Label Text="Incoming Requests"
+                       FontSize="10"
+                       HorizontalOptions="CenterAndExpand"
+                       VerticalOptions="CenterAndExpand" />
+            </Grid>
+
+            <RefreshView Grid.Row="1" IsRefreshing="{Binding IsBusy}" Command="{Binding RefreshCommand}">
+                <CollectionView x:Name="requestsCollection"
+                    ItemsSource="{Binding IncomingRequests}"
+                    IsPlatformEnabled="True"
+                    IsInPlatformLayout="True"
+                    ItemSizingStrategy="MeasureFirstItem"
+                    CanReorderItems="True"
+                    SelectionMode="None">
+
+                    <CollectionView.EmptyView>
+                        <Grid>
+                            <Label HorizontalOptions="CenterAndExpand"
+                                   VerticalOptions="CenterAndExpand"
+                                   Text="You don't have Incoming requests" />
+                        </Grid>
+                    </CollectionView.EmptyView>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:TrackRequest">
+                            <Frame Margin="10,10" CornerRadius="8" HasShadow="True" BackgroundColor="WhiteSmoke">
+                                <Frame.Behaviors>
+                                    <toolkit:TouchBehavior
+                                        PressedBackgroundColor="WhiteSmoke"
+                                        PressedOpacity="0.6"
+                                        Command="{Binding Source={x:Reference requestsCollection},Path=BindingContext.RequestSelectedCommand}"
+                                        CommandParameter="{Binding}" />
+                                </Frame.Behaviors>
+                                <Grid RowDefinitions="Auto,Auto">
+
+                                    <Label Text="{Binding SenderName}"
+                                           FontAutoScalingEnabled="True"
+                                           FontAttributes="Bold" />
+
+                                    <Label Grid.Row="1" Text="{Binding DateTime}" />
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+            </RefreshView>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

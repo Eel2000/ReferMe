@@ -1,18 +1,13 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Net.Http;
-using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Dispatching;
-using Microsoft.Maui.Storage;
 using Newtonsoft.Json;
 using ReferMe.Models;
 using ReferMe.Models.Interaction;
+using ReferMe.Models.Messagings;
 using ReferMe.Services.Authentication;
 using ReferMe.Services.Interactions;
 using ReferMe.Views;
@@ -240,6 +235,12 @@ public partial class MainPageViewModel : BaseViewModel
         Shell.Current.GoToAsync($"///{nameof(LoginPage)}", true);
     }
 
+    [RelayCommand]
+    void OpenRequestsPage()
+    {
+        Shell.Current.GoToAsync(nameof(RequestsPage), true);
+    }
+
     async ValueTask ListenAsync()
     {
         if (_hubConnection is null)
@@ -263,6 +264,24 @@ public partial class MainPageViewModel : BaseViewModel
         _hubConnection.On<Guid>("RequestAcceptedAsync", OnRequestAcceptedAsync);
 
         _hubConnection.On<Position>("ReceivePositionUpdatesAsync", OnReceivePositionUpdatesAsync);
+
+        WeakReferenceMessenger.Default.Register<AcceptRequestMessage>(this,
+            async (obj, arg) => await OnPositionSharingAllowed(arg.Value));
+    }
+
+    private async Task OnPositionSharingAllowed(AcceptRequest acceptRequest)
+    {
+        try
+        {
+            await _hubConnection.InvokeCoreAsync("AcceptRequestAsync", [acceptRequest.RequestId]);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            Shell.Current.DisplayAlert("SHARING",
+                e.Message + "\r\n" + e?.InnerException?.Message + "\r\n" +
+                e?.InnerException?.StackTrace, "OK");
+        }
     }
 
     private async Task OnReceivePositionUpdatesAsync(Position arg)

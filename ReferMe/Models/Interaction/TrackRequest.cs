@@ -6,6 +6,7 @@ public class TrackRequest
 {
     public Guid Id { get; set; }
     public string? Sender { get; set; }
+    public string? SenderName { get; set; }
     public string? Receiver { get; set; }
     public string? Message { get; set; }
     public bool Accepted { get; set; }
