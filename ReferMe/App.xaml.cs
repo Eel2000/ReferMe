@@ -1,4 +1,7 @@
-﻿namespace ReferMe;
+﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+
+namespace ReferMe;
 
 public partial class App : Application
 {
@@ -12,14 +15,14 @@ public partial class App : Application
     protected override void OnStart()
     {
         if (Preferences.ContainsKey("Token"))
-            Shell.Current.GoToAsync(nameof(ReferMe.MainPage));
+            Shell.Current.GoToAsync("///"+nameof(Views.MainPage));
         base.OnStart();
     }
 
     protected override void OnResume()
     {
         if (Preferences.ContainsKey("Token"))
-            Shell.Current.GoToAsync(nameof(ReferMe.MainPage));
+            Shell.Current.GoToAsync("///"+nameof(Views.MainPage));
         base.OnResume();
     }
 }

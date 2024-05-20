@@ -2,7 +2,8 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ReferMe.MainPage"
+             x:Class="ReferMe.Views.MainPage"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:ReferMe.ViewModels"
              xmlns:models="clr-namespace:ReferMe.Models"
              x:DataType="vm:MainPageViewModel">
@@ -19,44 +20,49 @@
                     SemanticProperties.Description="dot net bot in a race car number eight" />
 
                 <Label Text="{Binding UserInfo.UserName,StringFormat='Hello, {0}'}" />
-                <Label Text="{Binding ConnectionStatus,StringFormat='Connection {0}'}" />
+                <Label Text="{Binding ConnectionStatus,StringFormat='Server state {0}'}" />
 
-                <HorizontalStackLayout HorizontalOptions="CenterAndExpand" Spacing="10">
+                <Grid HorizontalOptions="CenterAndExpand" ColumnDefinitions="Auto,Auto,Auto">
                     <Button Command="{Binding RefreshConnectionCommand}"
-                            Text="Refresh Connection"
+                            Text="ReConnection"
                             CornerRadius="8" />
 
-                    <Button Command="{Binding RefreshDataCommand}"
+                    <Button Grid.Column="1" Command="{Binding RefreshDataCommand}"
                             Text="Refresh Data"
+                            CornerRadius="8" Margin="10,0"/>
+
+                    <Button Grid.Column="2" Command="{Binding LogOutCommand}"
+                            Text="Log out"
                             CornerRadius="8" />
 
-                </HorizontalStackLayout>
+                </Grid>
 
 
             </VerticalStackLayout>
-            <CollectionView Grid.Row="1"
+            <CollectionView Grid.Row="1" x:Name="userCollection"
                             ItemsSource="{Binding UserInfos}"
                             SelectedItem="{Binding SelectedUserInfo}"
-                            SelectionMode="Single"
-                            SelectionChangedCommand="{Binding SendRequestCommand}"
+                            SelectionMode="None"
                             IsPlatformEnabled="True"
                             IsInPlatformLayout="True"
                             ItemSizingStrategy="MeasureFirstItem"
                             ItemsUpdatingScrollMode="KeepScrollOffset">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:UserInfo">
-                        <Border HeightRequest="40" Margin="10,5">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
-
-                            <VerticalStackLayout>
-                                <Label Text="{Binding UserName}"
-                                       FontSize="18"
-                                       FontFamily="OpenSansSemiBold"
-                                       VerticalOptions="CenterAndExpand" />
-                            </VerticalStackLayout>
-                        </Border>
+                        <Frame Margin="5,5">
+                            <Frame.Behaviors>
+                                <toolkit:TouchBehavior
+                                    PressedBackgroundColor="WhiteSmoke"
+                                    PressedOpacity="0.6"
+                                    Command="{Binding Source={x:Reference userCollection},Path=BindingContext.SendRequestCommand}"
+                                    CommandParameter="{Binding}" />
+                            </Frame.Behaviors>
+                            <!-- <Frame.GestureRecognizers> -->
+                            <!--     <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainPageViewModel}},Path=SendRequestCommand}" -->
+                            <!--                           CommandParameter="{Binding}"/> -->
+                            <!-- </Frame.GestureRecognizers> -->
+                            <Label Text="{Binding Email}" FontFamily="OpenSansSemiBold" />
+                        </Frame>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

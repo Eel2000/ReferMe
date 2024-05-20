@@ -1,6 +1,6 @@
 ﻿using ReferMe.ViewModels;
 
-namespace ReferMe;
+namespace ReferMe.Views;
 
 public partial class MainPage : ContentPage
 {

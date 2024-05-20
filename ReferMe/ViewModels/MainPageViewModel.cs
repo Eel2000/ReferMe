@@ -1,21 +1,27 @@
-using System.Collections.Frozen;
+using System;
 using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
+using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
+using Microsoft.Maui.Storage;
 using Newtonsoft.Json;
 using ReferMe.Models;
 using ReferMe.Models.Interaction;
 using ReferMe.Services.Authentication;
 using ReferMe.Services.Interactions;
+using ReferMe.Views;
 
 namespace ReferMe.ViewModels;
 
 public partial class MainPageViewModel : BaseViewModel
 {
-    private readonly HubConnection _hubConnection;
+    private HubConnection _hubConnection;
     private readonly IRealTimeService _realTimeService;
     private readonly ILoginService _loginService;
 
@@ -27,10 +33,15 @@ public partial class MainPageViewModel : BaseViewModel
 
         var token = Preferences.Get("Token", String.Empty);
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("https://192.168.43.177:45455/hubs/tracker",
+            .WithUrl("https://192.168.11.111:45455/hubs/tracker",
                 options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult(token);
+                    options.WebSocketConfiguration = socketOptions =>
+                    {
+                        socketOptions.RemoteCertificateValidationCallback =
+                            (sender, certificate, chain, errors) => true;
+                    };
                     options.HttpMessageHandlerFactory = htttpHandlerConfig =>
                     {
                         var handler = new HttpClientHandler
@@ -43,21 +54,23 @@ public partial class MainPageViewModel : BaseViewModel
                         return htttpHandlerConfig;
                     };
                 })
-            .WithAutomaticReconnect()
             .Build();
 
-        Task.Run(() => { Dispatcher.GetForCurrentThread()?.Dispatch(async () => await _hubConnection.StartAsync()); });
-
-        InitializeAsync().SafeFireAndForget(exception =>
-        {
-            Shell.Current.DisplayAlert("INITIALIZATION",
-                exception.Message + "\r\n" + exception?.InnerException?.Message + "\r\n" +
-                exception?.InnerException?.StackTrace, "OK");
-        });
 
         ListenAsync().SafeFireAndForget(exception =>
         {
             Shell.Current.DisplayAlert("LISTENING",
+                exception.Message + "\r\n" + exception?.InnerException?.Message + "\r\n" +
+                exception?.InnerException?.StackTrace, "OK");
+        });
+
+        _hubConnection.StartAsync();
+
+        ConnectionStatus = _hubConnection.State.ToString().ToUpper() + "...";
+
+        InitializeAsync().SafeFireAndForget(exception =>
+        {
+            Shell.Current.DisplayAlert("INITIALIZATION",
                 exception.Message + "\r\n" + exception?.InnerException?.Message + "\r\n" +
                 exception?.InnerException?.StackTrace, "OK");
         });
@@ -88,15 +101,7 @@ public partial class MainPageViewModel : BaseViewModel
         var user = JsonConvert.DeserializeObject<UserInfo>(Preferences.Get("User", string.Empty));
         UserInfo = user;
 
-
-        // _hubConnection = new HubConnectionBuilder()
-        //     .WithUrl("https://192.168.43.177:45455/hubs/tracker",
-        //         options => { options.AccessTokenProvider = () => Task.FromResult(token); })
-        //     .WithAutomaticReconnect()
-        //     .Build();
-        //
-        // _hubConnection.StartAsync();
-
+        ConnectionStatus = _hubConnection.State.ToString().ToUpper() + "...";
         IsBusy = !IsBusy;
     }
 
@@ -131,15 +136,36 @@ public partial class MainPageViewModel : BaseViewModel
         {
             _hubConnection.StopAsync();
 
-            // var token = Preferences.Get("Token", String.Empty);
-            //
-            // _hubConnection = new HubConnectionBuilder()
-            //     .WithUrl("https://192.168.43.177:45455/hubs/tracker",
-            //         options => { options.AccessTokenProvider = () => Task.FromResult(token)!; })
-            //     .WithAutomaticReconnect()
-            //     .Build();
+            var token = Preferences.Get("Token", String.Empty);
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl("https://192.168.11.111:45455/hubs/tracker",
+                    options =>
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult(token);
+                        options.WebSocketConfiguration = socketOptions =>
+                        {
+                            socketOptions.RemoteCertificateValidationCallback =
+                                (sender, certificate, chain, errors) => true;
+                        };
+                        options.HttpMessageHandlerFactory = htttpHandlerConfig =>
+                        {
+                            var handler = new HttpClientHandler
+                            {
+                                ServerCertificateCustomValidationCallback =
+                                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+                            };
+                            htttpHandlerConfig = handler;
 
-            _hubConnection.StartAsync();
+                            return htttpHandlerConfig;
+                        };
+                    })
+                .Build();
+
+            await ListenAsync();
+
+
+            await _hubConnection.StartAsync();
+            ConnectionStatus = _hubConnection.State.ToString().ToUpper() + "...";
         }
         catch (Exception e)
         {
@@ -150,8 +176,19 @@ public partial class MainPageViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    async Task SendRequest()
+    async Task SendRequest(UserInfo userInfo)
     {
+        var question = await Shell.Current.DisplayAlert("REQUEST",
+            $"Would you like to send a request to {userInfo.UserName}?", "Yes", "No");
+
+        if (!question) return;
+
+        if (userInfo.UserId == UserInfo.UserId)
+        {
+            await Shell.Current.DisplayAlert("REQUEST", "Cannot send a request to self", "Ok");
+            return;
+        }
+
         try
         {
             if (UserInfo is null)
@@ -161,7 +198,7 @@ public partial class MainPageViewModel : BaseViewModel
                 return;
             }
 
-            if (SelectedUserInfo is null)
+            if (userInfo is null)
             {
                 await Shell.Current.DisplayAlert("REQUEST",
                     "Please Ensure that you've selected a Friend to request to.",
@@ -172,7 +209,7 @@ public partial class MainPageViewModel : BaseViewModel
             var request = new TrackingRequest
             {
                 Message = $"{UserInfo.UserName} has request you to share your location",
-                Receiver = SelectedUserInfo.UserId,
+                Receiver = userInfo.UserId,
                 Sender = UserInfo.UserId,
             };
 
@@ -184,8 +221,8 @@ public partial class MainPageViewModel : BaseViewModel
                 return;
             }
 
-            await _hubConnection.StartAsync();
-            await _hubConnection.InvokeAsync("SendPositionRequestAsync", request).ConfigureAwait(false);
+            // await _hubConnection.StartAsync();
+            await _hubConnection.InvokeCoreAsync("SendPositionRequestAsync", [request]);
         }
         catch (Exception e)
         {
@@ -194,6 +231,13 @@ public partial class MainPageViewModel : BaseViewModel
                 e.Message + "\r\n" + e?.InnerException?.Message + "\r\n" +
                 e?.InnerException?.StackTrace, "OK");
         }
+    }
+
+    [RelayCommand]
+    void LogOut()
+    {
+        Preferences.Clear();
+        Shell.Current.GoToAsync($"///{nameof(LoginPage)}", true);
     }
 
     async ValueTask ListenAsync()
@@ -234,13 +278,16 @@ public partial class MainPageViewModel : BaseViewModel
 
     private async Task OnRequestSentAsync(bool arg1, string arg2)
     {
-        await Shell.Current.DisplayAlert("REQUEST", arg2, "OK");
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            await Shell.Current.DisplayAlert("REQUEST", arg2, "OK");
+        });
     }
 
     private async Task OnRequestPositionAsync(string arg)
     {
-        await Shell.Current.DisplayAlert("REQUEST", arg, "OK");
-        //TODO Load the requests from the api and display theme
+        await MainThread.InvokeOnMainThreadAsync(
+            async () => { await Shell.Current.DisplayAlert("REQUEST", arg, "OK"); });
     }
 
     private Task OnReconnected(string? arg)

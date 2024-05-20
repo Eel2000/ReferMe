@@ -1,6 +1,11 @@
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 using Newtonsoft.Json;
 using ReferMe.Models;
 using ReferMe.Services.Authentication;
@@ -34,7 +39,7 @@ public partial class LoginPageViewModel(ILoginService loginService) : BaseViewMo
 
             var loginResponse =
                 await loginService.LoginAsync(new LoginRequest { Username = UserName, Password = Password });
-            if (loginResponse is not null)
+            if (loginResponse is not null && loginResponse.Status is true)
             {
                 await Shell.Current.DisplayAlert("LOGIN",
                     $"You're logged in and the session will expire in {TimeSpan.FromSeconds(loginResponse.ExpiresIn).TotalHours} Hours",
@@ -51,7 +56,7 @@ public partial class LoginPageViewModel(ILoginService loginService) : BaseViewMo
                 if (info!.IsConnected)
                 {
                     Preferences.Set("User", JsonConvert.SerializeObject(info?.User));
-                    await Shell.Current.GoToAsync("/" + nameof(MainPage), true);
+                    await Shell.Current.GoToAsync("///" + nameof(MainPage), true);
                 }
 
                 return;

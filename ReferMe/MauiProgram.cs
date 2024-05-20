@@ -1,6 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Net.Http;
+using CommunityToolkit.Maui;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
 using ReferMe.Services.Authentication;
 using ReferMe.Services.Interactions;
+using ReferMe.Services.Tracking;
 using ReferMe.ViewModels;
 using ReferMe.Views;
 
@@ -13,6 +19,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -38,6 +45,7 @@ public static class MauiProgram
             };
             ops = new(handler);
         });
+        builder.Services.AddHttpClient<ITrackingService, TrackingService>();
 
         builder.Services.AddSingleton<IRealTimeService, RealTimeService>();
 
