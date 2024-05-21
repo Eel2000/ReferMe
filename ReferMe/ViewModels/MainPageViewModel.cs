@@ -28,7 +28,7 @@ public partial class MainPageViewModel : BaseViewModel
 
         var token = Preferences.Get("Token", String.Empty);
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("https://192.168.11.111:45455/hubs/tracker",
+            .WithUrl("https://192.168.43.177:45455/hubs/tracker",
                 options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult(token);
@@ -98,6 +98,8 @@ public partial class MainPageViewModel : BaseViewModel
 
         ConnectionStatus = _hubConnection.State.ToString().ToUpper() + "...";
         IsBusy = !IsBusy;
+
+        MessageSubscritption();
     }
 
     [RelayCommand]
@@ -133,7 +135,7 @@ public partial class MainPageViewModel : BaseViewModel
 
             var token = Preferences.Get("Token", String.Empty);
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://192.168.11.111:45455/hubs/tracker",
+                .WithUrl("https://192.168.43.177:45455/hubs/tracker",
                     options =>
                     {
                         options.AccessTokenProvider = () => Task.FromResult(token);
@@ -259,12 +261,22 @@ public partial class MainPageViewModel : BaseViewModel
 
         _hubConnection.On<bool, string>("AcceptanceFailedAsync", OnRequestSentAsync);
 
-        _hubConnection.On<bool, string>("RequestAcceptedAsync", OnRequestSentAsync);
+        _hubConnection.On<bool, string>("AcceptedAsync", OnRequestSentAsync);
 
-        _hubConnection.On<Guid>("RequestAcceptedAsync", OnRequestAcceptedAsync);
+        _hubConnection.On<Guid>("RequestAcceptedAsync", (Guid id) =>
+        {
+            MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                Shell.Current.DisplayAlert("REQUEST-ACCEPTED",
+                    $"Request {id} has been accepted. you can now start tracking him", "Ok");
+            });
+        });
 
         _hubConnection.On<Position>("ReceivePositionUpdatesAsync", OnReceivePositionUpdatesAsync);
+    }
 
+    void MessageSubscritption()
+    {
         WeakReferenceMessenger.Default.Register<AcceptRequestMessage>(this,
             async (obj, arg) => await OnPositionSharingAllowed(arg.Value));
     }
@@ -292,7 +304,11 @@ public partial class MainPageViewModel : BaseViewModel
 
     private async Task OnRequestAcceptedAsync(Guid arg)
     {
-        await Shell.Current.DisplayAlert("REQUEST", $"You're sharing group has been created it ID is {arg}", "OK");
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            await Shell.Current.DisplayAlert("REQUEST", $"You're sharing group has been created it ID is {arg}",
+                "OK");
+        });
     }
 
     private async Task OnRequestSentAsync(bool arg1, string arg2)

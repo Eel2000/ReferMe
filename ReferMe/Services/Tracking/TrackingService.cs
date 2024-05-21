@@ -20,7 +20,7 @@ internal sealed class TrackingService(HttpClient client) : ITrackingService
             client = new HttpClient(handler);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var reponse = await client.GetAsync("https://192.168.11.111:45455/api/Tracking/incoming-requests");
+            var reponse = await client.GetAsync("https://192.168.43.177:45455/api/Tracking/incoming-requests");
             reponse.EnsureSuccessStatusCode();
 
             var jsonResponse = await reponse.Content.ReadAsStringAsync();
@@ -50,7 +50,7 @@ internal sealed class TrackingService(HttpClient client) : ITrackingService
 
             var reponse =
                 await client.GetFromJsonAsync<Response<IEnumerable<TrackRequest>>>(
-                    "https://192.168.11.111:45455/api/Tracking/outgoing-requests");
+                    "https://192.168.43.177:45455/api/Tracking/outgoing-requests");
 
             return reponse.Data;
         }

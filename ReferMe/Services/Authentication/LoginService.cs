@@ -25,7 +25,7 @@ internal sealed class LoginService(HttpClient client) : ILoginService
             client = new HttpClient(handler);
 
             var requestResponse =
-                await client.PostAsJsonAsync("https://192.168.11.111:45455/api/Authentication/login", login);
+                await client.PostAsJsonAsync("https://192.168.43.177:45455/api/Authentication/login", login);
 
             requestResponse.EnsureSuccessStatusCode();
 
@@ -55,7 +55,7 @@ internal sealed class LoginService(HttpClient client) : ILoginService
             client = new HttpClient(handler);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
-            var response = await client.GetAsync("https://192.168.11.111:45455/api/Authentication/info");
+            var response = await client.GetAsync("https://192.168.43.177:45455/api/Authentication/info");
 
             response.EnsureSuccessStatusCode();
 
@@ -84,7 +84,7 @@ internal sealed class LoginService(HttpClient client) : ILoginService
             client = new HttpClient(handler);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
-            var response = await client.GetAsync("https://192.168.11.111:45455/api/Authentication/infos");
+            var response = await client.GetAsync("https://192.168.43.177:45455/api/Authentication/infos");
 
             response.EnsureSuccessStatusCode();
 
