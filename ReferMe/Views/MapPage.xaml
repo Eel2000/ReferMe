@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             x:Class="ReferMe.Views.MapPage">
+    <ContentPage.Content>
+        <maps:Map x:Name="Map" 
+                  MapType="Street" 
+                  IsPlatformEnabled="True" 
+                  IsShowingUser="True" 
+                  IsPlatformStateConsistent="True">
+            <!--Manage pins and trace distances-->
+            
+        </maps:Map>
+    </ContentPage.Content>
+</ContentPage>

@@ -36,6 +36,8 @@ public static class MauiProgram
         builder.Services.AddTransient<RequestsPage>();
         builder.Services.AddTransient<RequestPageViewModel>();
 
+        builder.Services.AddTransient<MapPage>();
+
         builder.Services.AddHttpClient<ILoginService, LoginService>(ops =>
         {
             var handler = new HttpClientHandler

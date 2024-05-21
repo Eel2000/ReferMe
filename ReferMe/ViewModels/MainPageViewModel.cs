@@ -269,6 +269,7 @@ public partial class MainPageViewModel : BaseViewModel
             {
                 Shell.Current.DisplayAlert("REQUEST-ACCEPTED",
                     $"Request {id} has been accepted. you can now start tracking him", "Ok");
+                Shell.Current.GoToAsync(nameof(MapPage), animate: true);
             });
         });
 
