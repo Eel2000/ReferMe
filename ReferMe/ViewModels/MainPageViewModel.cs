@@ -52,12 +52,7 @@ public partial class MainPageViewModel : BaseViewModel
             .Build();
 
 
-        ListenAsync().SafeFireAndForget(exception =>
-        {
-            Shell.Current.DisplayAlert("LISTENING",
-                exception.Message + "\r\n" + exception?.InnerException?.Message + "\r\n" +
-                exception?.InnerException?.StackTrace, "OK");
-        });
+        Listen();
 
         _hubConnection.StartAsync();
 
@@ -158,7 +153,7 @@ public partial class MainPageViewModel : BaseViewModel
                     })
                 .Build();
 
-            await ListenAsync();
+            Listen();
 
 
             await _hubConnection.StartAsync();
@@ -243,7 +238,13 @@ public partial class MainPageViewModel : BaseViewModel
         Shell.Current.GoToAsync(nameof(RequestsPage), true);
     }
 
-    async ValueTask ListenAsync()
+    [RelayCommand]
+    void OpenMapPage()
+    {
+        Shell.Current.GoToAsync(nameof(MapPage), animate: true);
+    }
+
+    void Listen()
     {
         if (_hubConnection is null)
         {
@@ -265,11 +266,11 @@ public partial class MainPageViewModel : BaseViewModel
 
         _hubConnection.On<Guid>("RequestAcceptedAsync", (Guid id) =>
         {
-            MainThread.InvokeOnMainThreadAsync(() =>
+            MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                Shell.Current.DisplayAlert("REQUEST-ACCEPTED",
+                await Shell.Current.DisplayAlert("REQUEST-ACCEPTED",
                     $"Request {id} has been accepted. you can now start tracking him", "Ok");
-                Shell.Current.GoToAsync(nameof(MapPage), animate: true);
+                await Shell.Current.GoToAsync(nameof(MapPage), animate: true);
             });
         });
 
